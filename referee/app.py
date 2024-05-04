@@ -90,7 +90,7 @@ def get_data():
         "team1_id": board_game.game_info["team1_id"],
         "team2_id": board_game.game_info["team2_id"],
         "size": board_game.game_info["size"],
-        "init": is_init,
+        "init": True,
     }
 
 
