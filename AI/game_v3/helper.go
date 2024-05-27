@@ -264,6 +264,8 @@ func HttpServer() {
 		} else {
 			AI_PLAYER = PLAYER_O
 		}
+
+		w.Header().Set("Content-Type", "application/json")
 		game = NewTicTacToe(req.BoardSize)
 		if AI_PLAYER == PLAYER_X {
 			firstMove := Move{Row: game.BoardSize / 2, Col: game.BoardSize / 2}
@@ -275,6 +277,7 @@ func HttpServer() {
 	})
 
 	http.HandleFunc("POST /move", func(w http.ResponseWriter, r *http.Request) {
+		// log request
 		d := json.NewDecoder(r.Body)
 		var move Move
 		err := d.Decode(&move)
@@ -282,6 +285,7 @@ func HttpServer() {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+		log.Println(r.Method, r.URL.Path, move)
 		err = game.MakeMove(move)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -296,6 +300,7 @@ func HttpServer() {
 		}
 		game.PrintBoard()
 
+		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(struct {
 			Move     Move
 			GameOver bool

@@ -70,10 +70,10 @@ func GetValueFromRow(row, col int) int {
 
 func (t *TicTacToe) SetMove(row, col int) error {
 	if row < 1 || col < 1 || row > t.BoardSize || col > t.BoardSize {
-		return errors.New("out of bound")
+		return errors.New("out of bound" + string(rune(row)) + string(rune(col)))
 	}
 	if t.GetValue(row, col) != EMPTY {
-		return errors.New("invalid move (square not empty)")
+		return errors.New("invalid move (square not empty)" + string(rune(row)) + string(rune(col)))
 	}
 
 	player := t.GetPlayer()
