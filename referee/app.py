@@ -110,7 +110,7 @@ def update_time(rooms: List[BoardGame]):
             log("total rooms: ", len(rooms))
         for room_id in rooms:
             room = rooms[room_id]
-            if room.start_game:
+            if room.start_game and room.game_info["status"] == None:
                 team1_id_full = room.game_info["team1_id"]
                 team2_id_full = room.game_info["team2_id"]
                 now = time.time()
