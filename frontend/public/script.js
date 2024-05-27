@@ -7,7 +7,7 @@ let fetchInterval;
 
 document.getElementById("roomIdSubmit").addEventListener('click', handleSubmitRoomId)
 
-function handleSubmitRoomId(){
+function handleSubmitRoomId() {
     fetchInterval = setInterval(getJSON, 1000);
     const roomIdInput = document.getElementById("roomIdInput")
     roomId = roomIdInput.value;
@@ -30,7 +30,7 @@ function getJSON() {
 
     // let prevMatchId, currentMatchId
     // currentMatchId = game.match_id
-    if(game.status!= "None" && game.status!=undefined){
+    if (game.status != "None" && game.status != undefined) {
         // End the game
         console.log("Status: " + game.status)
         document.getElementById("status").style.display = "block";
@@ -42,7 +42,7 @@ function getJSON() {
         // prevMatchId = game.match_id
     }
 
-    if(game.room_id===roomId && game.room_id !== undefined){
+    if (game.room_id === roomId && game.room_id !== undefined) {
         drawBoard();
         render();
     }
@@ -57,7 +57,7 @@ function handleConfirm() {
 
     // Display room ID input
     document.getElementById("roomIdInput").value = "";
-    document.getElementById("roomid-input-container").style.display="block";
+    document.getElementById("roomid-input-container").style.display = "block";
 
     // Hide confirm button
     document.getElementById("confirm-button-container").style.display = "none";
@@ -65,8 +65,8 @@ function handleConfirm() {
 var prevGameBoard;
 function drawBoard() {
     document.getElementsByClassName("gameboard")[0].style.display = "block";
-    document.getElementById("roomid-input-container").style.display="none";
-    if (game.status == "None"){
+    document.getElementById("roomid-input-container").style.display = "none";
+    if (game.status == "None") {
         document.getElementById("status").style.display = "none";
         document.getElementById("confirm-button-container").style.display = "none";
     }
@@ -81,7 +81,7 @@ function drawBoard() {
 
     gameBoardHTML += "<tr>";
     gameBoardHTML += `<td style='width:${max_width / num_cells}px; height:${max_width / num_cells}px; font-size:${max_height / num_cells}px; font-weight: 300;'>`
-                + "</td>";
+        + "</td>";
     for (var i = 0; i < size; i++) {
         gameBoardHTML += `<td style='width:${max_width / num_cells}px; height:${max_width / num_cells}px; font-size:${max_height / num_cells}px; font-weight: 300;'>`
             + i
@@ -92,8 +92,8 @@ function drawBoard() {
     for (var i = 0; i < size; i++) {
         gameBoardHTML += "<tr>"
         gameBoardHTML += `<td style='width:${max_width / num_cells}px; height:${max_width / num_cells}px; font-size:${max_height / num_cells}px; font-weight: 300;'>`
-                + i
-                + "</td>"
+            + i
+            + "</td>"
         for (var j = 0; j < size; j++) {
 
             if (prevGameBoard != undefined && game.board[i][j] == 'x' && prevGameBoard[i][j] === ' ') {
@@ -107,15 +107,15 @@ function drawBoard() {
                     + "</td>"
             }
 
-            else if (game.board[i][j] == 'x'){
+            else if (game.board[i][j] == 'x') {
                 gameBoardHTML += `<td style='width:${max_width / num_cells}px; height:${max_width / num_cells}px; font-size:${max_height / num_cells}px; font-weight: 300; color: rgb(254,96,93)'>`
-                + game.board[i][j]
-                + "</td>"
+                    + game.board[i][j]
+                    + "</td>"
             }
             else {
                 gameBoardHTML += `<td style='width:${max_width / num_cells}px; height:${max_width / num_cells}px; font-size:${max_height / num_cells}px; font-weight: 300; color: #3DC4F3'>`
-                + game.board[i][j]
-                + "</td>"
+                    + game.board[i][j]
+                    + "</td>"
             }
 
         }
@@ -136,16 +136,16 @@ function render() {
         document.getElementById('turn-flag-2').style.visibility = "visible"
         document.getElementById('turn-flag-1').style.visibility = "hidden"
     }
-    else if (game.turn == undefined){
+    else if (game.turn == undefined) {
         document.getElementById('turn-flag-2').style.visibility = "hidden"
         document.getElementById('turn-flag-1').style.visibility = "hidden"
     }
-    if (game.team1_id != undefined){
+    if (game.team1_id != undefined) {
         let team1Parsed = game.team1_id.split("+");
         let teamId1 = team1Parsed[0].trim();
         let teamRole1 = team1Parsed[1].trim().toLowerCase();
         let avatarImg1 = document.querySelector(".player1-avatar img");
-        if(teamRole1 == "x" || teamRole1 == "o"){
+        if (teamRole1 == "x" || teamRole1 == "o") {
             avatarImg1.src = "resources/" + teamRole1 + "_role.png";
         }
         else {
@@ -159,24 +159,24 @@ function render() {
         avatarImg1.src = "resources/player1avatar.png";
     }
 
-    if (game.team2_id != undefined){
+    if (game.team2_id != undefined) {
         let team2Parsed = game.team2_id.split("+");
         let teamId2 = team2Parsed[0].trim();
         let teamRole2 = team2Parsed[1].trim().toLowerCase();
         let avatarImg2 = document.querySelector(".player2-avatar img");
-        if(teamRole2 == "x" || teamRole2 == "o"){
+        if (teamRole2 == "x" || teamRole2 == "o") {
             avatarImg2.src = "resources/" + teamRole2 + "_role.png";
         }
         else {
             avatarImg2.src = "resources/player2avatar.png";
         }
         document.getElementById("player2-id").innerText = teamId2;
-      }
-      else {
+    }
+    else {
         document.getElementById("player2-id").innerText = "";
         let avatarImg2 = document.querySelector(".player2-avatar img");
         avatarImg2.src = "resources/player2avatar.png";
-      }
+    }
     document.getElementById("match-id").innerText = `Match ID: ${game.match_id != undefined ? game.match_id : ""}`
     document.getElementById('player1-time').innerHTML = game.time1 != undefined ? game.time1.toFixed(5) : ""
     document.getElementById('player2-time').innerHTML = game.time2 != undefined ? game.time2.toFixed(5) : ""

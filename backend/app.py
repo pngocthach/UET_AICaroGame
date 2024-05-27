@@ -6,24 +6,28 @@ import requests
 from flask import Flask, jsonify, make_response, request
 from flask_cors import CORS, cross_origin
 
-from TicTacToeAi import get_move
+from TicTacToeAi import get_move, get_move2
 
 app = Flask(__name__)
 cors = CORS(app)
-app.config['CORS_HEADERS'] = 'Content-Type'
+app.config["CORS_HEADERS"] = "Content-Type"
 
-host = 'http://4.145.107.27:80'  # Địa chỉ server trọng tài mặc định
+host = "http://4.145.107.27:80"  # Địa chỉ server trọng tài mặc định
+# host = "http://127.0.0.1:5001"  # Địa chỉ server trọng tài mặc định
 team_id = 123  # team_id mặc định
 game_info = {}  # Thông tin trò chơi để hiển thị trên giao diện
 stop_thread = False  # Biến dùng để dừng thread lắng nghe
+# first_move = None
 
 
 # Giao tiếp với trọng tài qua API:
 # nghe trọng tài trả về thông tin hiển thị ở '/', gửi yêu cầu khởi tại qua '/init/' và gửi nước đi qua '/move'
 class GameClient:
-    def __init__(self, server_url, room_id, your_team_id, opponent_team_id,  your_team_roles):
+    def __init__(
+        self, server_url, room_id, your_team_id, opponent_team_id, your_team_roles
+    ):
         self.server_url = server_url
-        self.team_id = f'{your_team_id}+{your_team_roles}'
+        self.team_id = f"{your_team_id}+{your_team_roles}"
         self.your_team_id = your_team_id
         self.opponent_team_id = opponent_team_id
         self.team_roles = your_team_roles
@@ -33,6 +37,8 @@ class GameClient:
         self.size = None
         self.ai = None
         self.room_id = room_id
+        self.first_move = None
+        self.ai_init = False
 
     def listen(self):
         # Lắng nghe yêu cầu từ server trọng tài
@@ -40,14 +46,14 @@ class GameClient:
         while not stop_thread:
             # Thời gian lắng nghe giữa các lần
             time.sleep(3)
-            print(f'Init: {self.init}')
+            print(f"Init: {self.init}")
 
             # Nếu chưa kết nối thì gửi yêu cầu kết nối
             if not self.init:
                 response = self.send_init()
             else:
                 response = self.fetch_game_info()
-            # print(response.content)
+
             # Lấy thông tin trò chơi từ server trọng tài và cập nhật vào game_info
             data = json.loads(response.content)
             global game_info
@@ -67,13 +73,29 @@ class GameClient:
 
             # Nhận thông tin trò chơi
             elif data.get("board") and data.get("status") is None:
-                # Nếu là lượt đi của đội của mình thì gửi nước đi             
+                # Nếu là lượt đi của đội của mình thì gửi nước đi
                 log_game_info()
                 if data.get("turn") in self.team_id:
                     self.size = int(data.get("size"))
+                    if not self.ai_init:
+                        self.init_ai()
+                        self.ai_init = True
+
+                    move = None
+                    # check board is empty
+                    if self.board is None and self.team_roles == "x":
+                        move = self.first_move
+                    elif self.board is None and self.team_roles == "o":
+                        move = get_move2(
+                            data.get("board"),
+                            [[" " for _ in range(self.size)] for _ in range(self.size)],
+                        )
+                    else:
+                        move = get_move2(data.get("board"), self.board)
                     self.board = copy.deepcopy(data.get("board"))
-                    # Lấy nước đi từ AI, nước đi là một tuple (i, j)
-                    move = get_move(self.board, self.size)
+                    # # Lấy nước đi từ AI, nước đi là một tuple (i, j)
+                    # move = get_move(self.board, self.size)
+
                     print("Move: ", move)
                     # Kiểm tra nước đi hợp lệ
                     valid_move = self.check_valid_move(move)
@@ -107,17 +129,37 @@ class GameClient:
             "room_id": self.room_id,
             "team1_id": self.your_team_id,
             "team2_id": self.opponent_team_id,
-            "init": True
+            "init": True,
         }
         headers = {"Content-Type": "application/json"}
+
         return requests.post(self.server_url + "/init", json=init_info, headers=headers)
+
+    def init_ai(self):
+        ## init AI
+        headers = {"Content-Type": "application/json"}
+        ai_init_info = {
+            "BoardSize": self.size,
+            "Player": "X" if self.team_roles == "x" else "O",
+        }
+        ai_init_request = requests.post(
+            "http://localhost:8080/init", json=ai_init_info, headers=headers
+        )
+        ai_init_data = ai_init_request.json()
+
+        first_move = (
+            ai_init_data["FirstMove"]["Row"] - 1,
+            ai_init_data["FirstMove"]["Col"] - 1,
+        )
+        if self.team_roles == "x":
+            self.first_move = first_move
 
     def fetch_game_info(self):
         # Lấy thông tin trò chơi từ server trọng tài
         request_info = {
             "room_id": self.room_id,
             "team_id": self.team_id,
-            "match_id": self.match_id
+            "match_id": self.match_id,
         }
         headers = {"Content-Type": "application/json"}
         response = requests.post(self.server_url, json=request_info, headers=headers)
@@ -153,7 +195,7 @@ def log_game_info():
 
 
 # API trả về thông tin trò chơi cho frontend
-@app.route('/')
+@app.route("/")
 @cross_origin()
 def get_data():
     print(game_info)
@@ -164,6 +206,7 @@ def get_data():
 if __name__ == "__main__":
     # Lấy địa chỉ server trọng tài từ người dùng
     # host = input("Enter server url: ")
+    # host = "http://127.0.0.1:5001"
     host = "http://4.145.107.27:80"
     room_id = input("Enter room id: ")
     your_team_id = input("Enter your team id: ")
@@ -172,4 +215,3 @@ if __name__ == "__main__":
     # Khởi tạo game client
     gameClient = GameClient(host, room_id, your_team_id, opponent_team_id, team_roles)
     gameClient.listen()
-
